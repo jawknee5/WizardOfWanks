@@ -1,0 +1,18 @@
+FROM --platform=linux/arm64 node:18-alpine
+
+WORKDIR /app
+
+# Apple Silicon compatible
+ENV DOCKER_DEFAULT_PLATFORM=linux/arm64
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000 5000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
+
+CMD ["npm", "start"]

@@ -1,0 +1,56 @@
+{
+  "cli": {
+    "version": ">= 3.12.0"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildType": "simulator"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildType": "simulator"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle",
+        "targetExportFormat": "app-bundle"
+      },
+      "ios": {
+        "buildType": "archive"
+      }
+    },
+    "ios-arm64": {
+      "extends": "production",
+      "ios": {
+        "buildType": "archive",
+        "enterpriseCodeSigningTeam": "YOUR_TEAM_ID"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppIdentifier": "com.wizardofwanks.enterprise",
+        "appleId": "your-apple-id@example.com",
+        "appleTeamId": "YOUR_TEAM_ID",
+        "appleAppSpecificPassword": "YOUR_APP_SPECIFIC_PASSWORD"
+      },
+      "android": {
+        "serviceAccount": "service-account.json",
+        "track": "production"
+      }
+    }
+  }
+}

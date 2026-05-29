@@ -1,0 +1,28 @@
+# Multi-platform Dockerfile
+# Supports: linux/amd64, linux/arm64 (Apple Silicon), linux/arm/v7
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
+FROM --platform=${TARGETPLATFORM} node:18-alpine
+
+WORKDIR /app
+
+# Build arguments
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
+# Environment
+ENV NODE_ENV=production
+ENV PLATFORM=${TARGETPLATFORM}
+
+COPY package*.json ./
+RUN npm install --production
+
+COPY . .
+
+EXPOSE 3000 5000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
+
+CMD ["npm", "start"]

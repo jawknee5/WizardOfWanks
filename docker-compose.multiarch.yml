@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Multi-architecture support
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.multiarch
+      args:
+        BUILDPLATFORM: ${BUILDPLATFORM}
+        TARGETPLATFORM: ${TARGETPLATFORM}
+    container_name: wizardofwanks-app
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PLATFORM: ${TARGETPLATFORM}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - wizardofwanks-network
+
+networks:
+  wizardofwanks-network:
+    driver: bridge

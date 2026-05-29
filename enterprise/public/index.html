@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WizardOfWanks - Enterprise Template Management System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #667eea;
+      --primary-dark: #764ba2;
+      --secondary: #f093fb;
+      --success: #4caf50;
+      --danger: #f44336;
+      --warning: #ff9800;
+      --light: #f5f5f5;
+      --dark: #333;
+      --border: #e0e0e0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      color: var(--dark);
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      padding: 30px 20px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .sidebar.active {
+      display: block;
+    }
+
+    .sidebar-header {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-item:hover {
+      background: var(--light);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: white;
+      padding: 20px 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .user-badge {
+      background: var(--light);
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--light);
+      color: var(--dark);
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #d32f2f;
+    }
+
+    .content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: var(--dark);
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .template-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .template-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      border-color: var(--primary);
+    }
+
+    .template-category {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .template-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--dark);
+    }
+
+    .template-desc {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 200px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .message {
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      animation: slideIn 0.3s ease-in;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th {
+      background: var(--light);
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table tr:hover {
+      background: var(--light);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        padding: 20px;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .template-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">🧙‍♂️ Wizard</div>
+      <nav id="navigation">
+        <div class="nav-item active" data-page="dashboard">📊 Dashboard</div>
+        <div class="nav-item" data-page="templates">📚 Templates</div>
+        <div class="nav-item" data-page="create">➕ Create Template</div>
+        <div class="nav-item" data-page="categories">🏷️ Categories</div>
+        <div class="nav-item" data-page="profile">👤 Profile</div>
+      </nav>
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <button class="btn-secondary" id="logoutBtn" style="width: 100%;">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header>
+        <div class="header-title" id="pageTitle">WizardOfWanks</div>
+        <div class="header-actions">
+          <div class="user-badge" id="userBadge">Loading...</div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div style="flex: 1; overflow-y: auto;">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="content active" style="display: flex; align-items: center; justify-content: center;">
+          <div class="card" style="width: 100%; max-width: 400px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <div style="font-size: 64px; margin-bottom: 15px;">🧙‍♂️</div>
+              <h1 style="font-size: 28px; margin-bottom: 8px;">WizardOfWanks</h1>
+              <p style="color: #666; font-size: 14px;">Enterprise Template Management System</p>
+            </div>
+
+            <div id="loginMessage"></div>
+
+            <form id="authForm">
+              <div class="form-group">
+                <label for="authEmail">Email</label>
+                <input type="email" id="authEmail" placeholder="your@email.com" required>
+              </div>
+              <div class="form-group">
+                <label for="authPassword">Password</label>
+                <input type="password" id="authPassword" placeholder="password" required>
+              </div>
+              <button type="submit" class="btn-primary" style="width: 100%; margin-bottom: 12px;">Login</button>
+            </form>
+
+            <p style="text-align: center; font-size: 13px; color: #999;">
+              Demo: admin@wizardofwanks.com / password123
+            </p>
+          </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardPage" class="content">
+          <div class="container">
+            <div class="section-title">Dashboard</div>
+            
+            <div class="stats-grid" id="statsGrid">
+              <div class="stat-card">
+                <div class="stat-number" id="statUsers">-</div>
+                <div class="stat-label">Total Users</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number" id="statTemplates">-</div>
+                <div class="stat-label">Templates</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number" id="statCategories">-</div>
+                <div class="stat-label">Categories</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">Quick Actions</h2>
+              <button class="btn-primary" onclick="navigateToPage('create')">➕ Create New Template</button>
+              <button class="btn-primary" onclick="navigateToPage('templates')" style="margin-left: 10px;">📚 Browse Templates</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates List -->
+        <div id="templatesPage" class="content">
+          <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <div class="section-title" style="margin: 0;">Templates Library</div>
+              <button class="btn-primary" onclick="navigateToPage('create')">➕ Create New</button>
+            </div>
+
+            <div id="filterCategory" style="margin-bottom: 20px;">
+              <label>Filter by Category:</label>
+              <select id="categoryFilter" style="width: 300px;">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+
+            <div id="templatesGrid" class="template-grid">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create Template -->
+        <div id="createPage" class="content">
+          <div class="container">
+            <div class="section-title">Create New Template</div>
+            
+            <div class="card">
+              <form id="createTemplateForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="templateName">Template Name *</label>
+                    <input type="text" id="templateName" placeholder="e.g., Business Letter" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="templateCategory">Category *</label>
+                    <select id="templateCategory" required>
+                      <option value="">Select Category</option>
+                      <option value="Business">Business</option>
+                      <option value="Finance">Finance</option>
+                      <option value="HR">HR</option>
+                      <option value="Legal">Legal</option>
+                      <option value="Marketing">Marketing</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="templateDescription">Description</label>
+                  <input type="text" id="templateDescription" placeholder="Brief description of the template">
+                </div>
+
+                <div class="form-group">
+                  <label for="templateContent">Template Content *</label>
+                  <textarea id="templateContent" placeholder="Enter your template content here..." required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                  <button type="submit" class="btn-primary">Create Template</button>
+                  <button type="button" class="btn-secondary" onclick="navigateToPage('templates')">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div id="categoriesPage" class="content">
+          <div class="container">
+            <div class="section-title">Template Categories</div>
+            
+            <div id="categoriesGrid" class="template-grid">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile -->
+        <div id="profilePage" class="content">
+          <div class="container">
+            <div class="section-title">My Profile</div>
+            
+            <div class="card">
+              <form id="profileForm">
+                <div class="form-group">
+                  <label for="profileEmail">Email (Read-only)</label>
+                  <input type="email" id="profileEmail" disabled>
+                </div>
+                <div class="form-group">
+                  <label for="profileName">Full Name</label>
+                  <input type="text" id="profileName" placeholder="Your name">
+                </div>
+                <button type="submit" class="btn-primary">Save Changes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Template Detail Modal -->
+  <div id="templateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="modalTitle">Template</span>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // App State
+    let appState = {
+      currentUser: null,
+      token: null,
+      templates: [],
+      categories: []
+    };
+
+    const API_URL = window.location.origin + '/api';
+
+    // ==================== AUTHENTICATION ====================
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          appState.token = data.token;
+          appState.currentUser = data.user;
+          localStorage.setItem('token', data.token);
+          showLoginScreen(false);
+          loadUserProfile();
+          loadDashboardStats();
+        } else {
+          showMessage('loginMessage', data.message, 'error');
+        }
+      } catch (error) {
+        showMessage('loginMessage', 'Login failed: ' + error.message, 'error');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      appState.token = null;
+      appState.currentUser = null;
+      localStorage.removeItem('token');
+      showLoginScreen(true);
+    });
+
+    // ==================== NAVIGATION ====================
+
+    function navigateToPage(page) {
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      const pageEl = document.getElementById(page + 'Page');
+      if (pageEl) {
+        pageEl.classList.add('active');
+      }
+      
+      const navItem = document.querySelector(`[data-page="${page}"]`);
+      if (navItem) {
+        navItem.classList.add('active');
+      }
+
+      // Load data for specific pages
+      if (page === 'templates') loadTemplates();
+      if (page === 'categories') loadCategories();
+      if (page === 'dashboard') loadDashboardStats();
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        navigateToPage(item.dataset.page);
+      });
+    });
+
+    // ==================== DATA LOADING ====================
+
+    async function loadUserProfile() {
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: { 'Authorization': `Bearer ${appState.token}` }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          appState.currentUser = data.user;
+          document.getElementById('userBadge').textContent = `👤 ${data.user.name}`;
+          document.getElementById('profileEmail').value = data.user.email;
+          document.getElementById('profileName').value = data.user.name;
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      }
+    }
+
+    async function loadDashboardStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/stats`, {
+          headers: { 'Authorization': `Bearer ${appState.token}` }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('statUsers').textContent = data.stats.totalUsers;
+          document.getElementById('statTemplates').textContent = data.stats.totalTemplates;
+          document.getElementById('statCategories').textContent = data.stats.totalCategories;
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    async function loadTemplates() {
+      try {
+        const response = await fetch(`${API_URL}/templates`, {
+          headers: { 'Authorization': `Bearer ${appState.token}` }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          appState.templates = data.templates;
+          renderTemplates(data.templates);
+        }
+      } catch (error) {
+        console.error('Failed to load templates:', error);
+      }
+    }
+
+    async function loadCategories() {
+      try {
+        const response = await fetch(`${API_URL}/categories`);
+
+        const data = await response.json();
+        if (data.success) {
+          appState.categories = data.categories;
+          renderCategories(data.categories);
+          populateCategoryFilter(data.categories);
+        }
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    }
+
+    // ==================== RENDERING ====================
+
+    function renderTemplates(templates) {
+      const grid = document.getElementById('templatesGrid');
+      
+      if (templates.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No templates found</p>';
+        return;
+      }
+
+      grid.innerHTML = templates.map(t => `
+        <div class="template-card" onclick="viewTemplate('${t.id}')">
+          <div class="template-category">${t.category}</div>
+          <div class="template-name">${t.name}</div>
+          <div class="template-desc">${t.description || 'No description'}</div>
+          <small style="color: #999;">Created: ${new Date(t.created_at).toLocaleDateString()}</small>
+        </div>
+      `).join('');
+    }
+
+    function renderCategories(categories) {
+      const grid = document.getElementById('categoriesGrid');
+      
+      grid.innerHTML = categories.map(c => `
+        <div class="template-card">
+          <div class="template-name" style="font-size: 24px; margin-bottom: 8px;">🏷️</div>
+          <div class="template-name">${c.name}</div>
+          <div class="template-desc">${c.description}</div>
+        </div>
+      `).join('');
+    }
+
+    function populateCategoryFilter(categories) {
+      const select = document.getElementById('categoryFilter');
+      categories.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.name;
+        option.textContent = c.name;
+        select.appendChild(option);
+      });
+    }
+
+    function viewTemplate(id) {
+      const template = appState.templates.find(t => t.id === id);
+      if (!template) return;
+
+      document.getElementById('modalTitle').textContent = template.name;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="template-category">${template.category}</div>
+        <p style="margin-bottom: 16px; color: #666;">${template.description || 'No description'}</p>
+        <h3 style="font-weight: 700; margin-bottom: 12px;">Content:</h3>
+        <pre style="background: var(--light); padding: 16px; border-radius: 6px; overflow-x: auto; max-height: 300px;">${template.content}</pre>
+        <button class="btn-primary" onclick="copyToClipboard(\`${template.content.replace(/`/g, '\\`')}\`)">📋 Copy Content</button>
+      `;
+      document.getElementById('templateModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('templateModal').classList.remove('active');
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      showMessage('modalBody', 'Copied to clipboard!', 'success');
+    }
+
+    // ==================== FORM SUBMISSIONS ====================
+
+    document.getElementById('createTemplateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const template = {
+        name: document.getElementById('templateName').value,
+        category: document.getElementById('templateCategory').value,
+        description: document.getElementById('templateDescription').value,
+        content: document.getElementById('templateContent').value
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/templates`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${appState.token}`
+          },
+          body: JSON.stringify(template)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showMessage('createPage', 'Template created successfully!', 'success');
+          document.getElementById('createTemplateForm').reset();
+          setTimeout(() => navigateToPage('templates'), 1500);
+        } else {
+          showMessage('createPage', data.message, 'error');
+        }
+      } catch (error) {
+        showMessage('createPage', 'Failed to create template: ' + error.message, 'error');
+      }
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${appState.token}`
+          },
+          body: JSON.stringify({
+            name: document.getElementById('profileName').value
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showMessage('profilePage', 'Profile updated successfully!', 'success');
+          appState.currentUser = data.user;
+        }
+      } catch (error) {
+        showMessage('profilePage', 'Failed to update profile: ' + error.message, 'error');
+      }
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', (e) => {
+      const filtered = e.target.value 
+        ? appState.templates.filter(t => t.category === e.target.value)
+        : appState.templates;
+      renderTemplates(filtered);
+    });
+
+    // ==================== UTILITIES ====================
+
+    function showLoginScreen(show) {
+      document.getElementById('loginScreen').style.display = show ? 'flex' : 'none';
+      document.getElementById('sidebar').classList.toggle('active', !show);
+      document.querySelector('header').style.display = show ? 'none' : 'flex';
+      const contentPages = document.querySelectorAll('.content:not(#loginScreen)');
+      contentPages.forEach(p => p.style.display = 'none');
+      if (!show) navigateToPage('dashboard');
+    }
+
+    function showMessage(containerId, message, type) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const msgEl = document.createElement('div');
+      msgEl.className = `message ${type}`;
+      msgEl.textContent = message;
+      container.insertAdjacentElement('afterbegin', msgEl);
+
+      setTimeout(() => msgEl.remove(), 4000);
+    }
+
+    // ==================== INITIALIZATION ====================
+
+    function init() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        appState.token = token;
+        showLoginScreen(false);
+        loadUserProfile();
+        loadDashboardStats();
+        loadCategories();
+      } else {
+        showLoginScreen(true);
+      }
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

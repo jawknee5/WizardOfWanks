@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wizard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wizard
+      POSTGRES_PASSWORD: wizardpass
+      POSTGRES_DB: wizard_db
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - wizard_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wizard -d wizard_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - wizard_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # WizardOfWanks Application
+  wizard:
+    build:
+      context: ./WizardOfWanks/enterprise
+      dockerfile: Dockerfile
+    container_name: wizard-of-wanks
+    restart: unless-stopped
+    env_file:
+      - ./WizardOfWanks/enterprise/.env
+    environment:
+      DATABASE_URL: postgresql://wizard:wizardpass@postgres:5432/wizard_db
+      NODE_ENV: production
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wizard_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: sh -c "npm run migrate && npm run seed && npm start"
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: wizard-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@wizard.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - wizard_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  wizard_network:
+    driver: bridge
+    name: wizard_network
+
+volumes:
+  wizard_pg_data:
+    driver: local
+    name: wizard_pg_data
