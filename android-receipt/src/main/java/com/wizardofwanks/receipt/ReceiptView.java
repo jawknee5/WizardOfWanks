@@ -46,13 +46,6 @@ public class ReceiptView extends View {
     private static final int K_BARCODE = 4;
     private static final int K_LOGO = 5;
 
-    /** Bar/space widths for the decorative barcode, one row per digit. */
-    private static final int[][] BAR_TABLE = {
-            {1, 2, 1, 2, 3, 1}, {3, 1, 1, 2, 1, 2}, {1, 3, 2, 1, 1, 2}, {1, 1, 2, 3, 1, 2},
-            {2, 1, 1, 2, 3, 1}, {1, 2, 2, 1, 1, 3}, {2, 1, 2, 1, 2, 2}, {1, 1, 3, 2, 1, 2},
-            {2, 2, 1, 2, 1, 2}, {1, 2, 1, 1, 3, 2}
-    };
-
     private static class Row {
         int kind;
         final RectF bounds = new RectF();
@@ -434,33 +427,19 @@ public class ReceiptView extends View {
         }
     }
 
+    /** Draws a real Code 128 symbol: bars at even widths, spaces at odd ones. */
     private void drawBarcode(Canvas canvas, RectF bounds) {
-        String digits = receipt.tcNumber == null ? "" : receipt.tcNumber.replaceAll("[^0-9]", "");
-        List<Integer> widths = new ArrayList<Integer>();
-        widths.add(1);
-        widths.add(1);
-        widths.add(2);
-        widths.add(1);
-        widths.add(1);
-        for (int i = 0; i < digits.length(); i++) {
-            int digit = digits.charAt(i) - '0';
-            int[] table = BAR_TABLE[Math.max(0, Math.min(9, digit))];
-            for (int w : table) widths.add(w);
-        }
-        widths.add(1);
-        widths.add(1);
-        widths.add(2);
-        widths.add(1);
+        int[] widths = Code128.encode(receipt.tcNumber);
+        if (widths.length == 0) return;
 
-        float total = 0f;
-        for (int w : widths) total += w;
+        float total = Code128.modules(widths);
         float module = bounds.width() / total;
         float x = bounds.left;
         Paint p = new Paint();
         p.setColor(0xFF111111);
         p.setStyle(Paint.Style.FILL);
-        for (int i = 0; i < widths.size(); i++) {
-            float w = widths.get(i) * module;
+        for (int i = 0; i < widths.length; i++) {
+            float w = widths[i] * module;
             if (i % 2 == 0) {
                 canvas.drawRect(x, bounds.top, x + w, bounds.bottom, p);
             }
