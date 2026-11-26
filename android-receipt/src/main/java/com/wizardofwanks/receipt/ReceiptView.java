@@ -289,7 +289,7 @@ public class ReceiptView extends View {
         if (rate != null) {
             mono.setTextSize(dp(9.6f));
             // generous tap target for the small rate text
-            float rateX = w * 0.605f;
+            float rateX = w * 0.60f;
             float rateWidth = mono.measureText(rate);
             hits.add(new Hit(new RectF(rateX - dp(18), y - dp(4),
                     rateX + rateWidth + dp(18), y + lh + dp(4)), "tax", taxIndex));
@@ -416,10 +416,10 @@ public class ReceiptView extends View {
         p.setColor(0xFF141414);
         float baseline = row.bounds.centerY() - (p.ascent() + p.descent()) / 2f;
         p.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText(row.label, row.rate == null ? contentW * 0.80f : contentW * 0.60f, baseline, p);
+        canvas.drawText(row.label, row.rate == null ? contentW * 0.80f : contentW * 0.55f, baseline, p);
         if (row.rate != null) {
             p.setTextAlign(Paint.Align.LEFT);
-            canvas.drawText(row.rate, contentW * 0.605f, baseline, p);
+            canvas.drawText(row.rate, contentW * 0.60f, baseline, p);
         }
         if (row.value != null && row.value.length() > 0) {
             p.setTextAlign(Paint.Align.RIGHT);
