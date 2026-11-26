@@ -200,35 +200,59 @@ def draw_app_bar(draw, top, fonts, title):
 
 
 def draw_logo(draw, page_x, page_y, fonts, size):
-    word_font = fonts.get("black", 42 * size)
-    word = "Walmart"
-    word_w = word_font.getlength(word)
-    spark_r = 15 * size
-    gap = 7 * size
-    total = word_w + gap + 2 * spark_r
+    """Original WaImart lockup: receipt badge mark, wordmark, slogan.
+
+    Mirrors ReceiptView.drawLogo(): 34 dp mark, 9 dp gap, 34 dp wordmark with
+    -0.015 tracking, 8.6 dp slogan at 0.22 tracking, lockup centred on 372 dp.
+    """
+    word_font = fonts.get("black", 34 * size)
+    head, tail = "Wa", "mart"
+    head_w = word_font.getlength(head)
+    tail_w = word_font.getlength(tail)
+    cap_w = 34 * size * 0.34
+    joint = 34 * size * 0.02
+
+    mark = 34 * size
+    gap = 9 * size
+    total = mark + gap + head_w + joint + cap_w + joint + tail_w
     left = PAGE_W_DP / 2 * size - total / 2
-    baseline = page_y + 60 * size
-    draw.text((page_x + left, baseline), word, font=word_font, fill=(12, 12, 12, 255), anchor="ls")
+    center_y = page_y + 46 * size
+    ascent, descent = word_font.getmetrics()
+    baseline = center_y + (ascent - descent) / 2.0
+    word_left = page_x + left + mark + gap
+    draw.text((word_left, baseline), head, font=word_font, fill=INK, anchor="ls")
+    cap_left = word_left + head_w + joint
+    cap_h = 34 * size * 0.715
+    stem = 34 * size * 0.135
+    bar = 34 * size * 0.11
+    cap_top = baseline - cap_h
+    draw.rounded_rectangle([cap_left, cap_top, cap_left + cap_w, cap_top + bar],
+                           radius=34 * size * 0.02, fill=BLUE_BAR)
+    draw.rounded_rectangle([cap_left + (cap_w - stem) / 2, cap_top, cap_left + (cap_w + stem) / 2, baseline],
+                           radius=34 * size * 0.02, fill=BLUE_BAR)
+    draw.rounded_rectangle([cap_left, baseline - bar, cap_left + cap_w, baseline],
+                           radius=34 * size * 0.02, fill=BLUE_BAR)
+    draw.text((cap_left + cap_w + joint, baseline), tail, font=word_font, fill=INK, anchor="ls")
 
-    cx = page_x + left + word_w + gap + spark_r
-    cy = baseline - 15 * size
-    spoke = max(1, int(4.6 * size))
-    for i in range(6):
-        import math
-        angle = math.radians(-90 + i * 60)
-        x0 = cx + math.cos(angle) * spark_r * 0.26
-        y0 = cy + math.sin(angle) * spark_r * 0.26
-        x1 = cx + math.cos(angle) * spark_r * 0.95
-        y1 = cy + math.sin(angle) * spark_r * 0.95
-        draw.line([x0, y0, x1, y1], fill=(12, 12, 12, 255), width=spoke)
-        r = spoke / 2
-        draw.ellipse([x0 - r, y0 - r, x0 + r, y0 + r], fill=(12, 12, 12, 255))
-        draw.ellipse([x1 - r, y1 - r, x1 + r, y1 + r], fill=(12, 12, 12, 255))
+    # mark: rounded badge with a torn bottom edge and a white W
+    box = (page_x + left, center_y - mark / 2, page_x + left + mark, center_y + mark / 2)
+    draw.rounded_rectangle(box, radius=mark * 0.26, fill=BLUE_BAR)
+    notch_r = mark * 0.085
+    for i in range(3):
+        cx = box[0] + mark * (0.22 + 0.28 * i)
+        draw.ellipse([cx - notch_r, box[3] - notch_r, cx + notch_r, box[3] + notch_r], fill=PAPER)
 
-    slogan_font = fonts.get("bold", 11.5 * size)
-    slogan = "Save more. Live better."
-    draw.text((page_x + PAGE_W_DP / 2 * size, baseline + 23 * size), slogan,
-              font=slogan_font, fill=(16, 16, 16, 255), anchor="ms")
+    points = [(0.21, 0.30), (0.325, 0.66), (0.50, 0.42), (0.675, 0.66), (0.79, 0.30)]
+    xy = [(box[0] + px_ * mark, box[1] + py_ * mark) for px_, py_ in points]
+    stroke_w = 0.115 * mark
+    draw.line(xy, fill=PAPER, width=max(1, int(round(stroke_w))), joint="curve")
+    for x, y in (xy[0], xy[-1]):
+        draw.ellipse([x - stroke_w / 2, y - stroke_w / 2, x + stroke_w / 2, y + stroke_w / 2], fill=PAPER)
+
+    slogan_font = fonts.get("bold", 8.6 * size)
+    slogan = "KEEP EVERY LINE."
+    draw_tracked(draw, word_left, baseline + 18 * size, slogan,
+                 slogan_font, 0.22 * 8.6 * size, (91, 107, 122, 255))
 
 
 # --------------------------------------------------------------- receipt screen
@@ -253,7 +277,7 @@ def render_receipt(img, fonts, data, bits):
 
     y = 4 * scale
     draw_logo(draw, page_x, top + y, fonts, scale)
-    y += 102 * scale
+    y += 88 * scale
 
     for line in data["store"]:
         font = fonts.get("mono", BODY_DP * scale)
@@ -482,7 +506,7 @@ def main():
 
     compose(
         "Receipt Detail",
-        "Receipt screen: Walmart header, editable receipt, real Code 128 barcode.",
+        "Receipt screen: WaImart lockup, editable receipt, real Code 128 barcode.",
         [
             "Pinch out to zoom in, pinch closed to zoom out.",
             "Two-finger press and drag moves the entire receipt.",

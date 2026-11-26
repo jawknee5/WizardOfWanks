@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -38,6 +39,9 @@ public class ReceiptView extends View {
 
     private static final float PAGE_W_DP = 372f;
     private static final float ITEM_LINE_DP = 11.9f;
+    private static final float LOGO_H_DP = 88f;
+    private static final int BRAND_BLUE = 0xFF0B6BC1;
+    private static final int SLOGAN_INK = 0xFF5B6B7A;
 
     private static final int K_TEXT = 0;
     private static final int K_ITEM = 1;
@@ -168,9 +172,9 @@ public class ReceiptView extends View {
 
         Row logo = new Row();
         logo.kind = K_LOGO;
-        logo.bounds.set(0, y, w, y + dp(102));
+        logo.bounds.set(0, y, w, y + dp(LOGO_H_DP));
         rows.add(logo);
-        y += dp(102);
+        y += dp(LOGO_H_DP);
 
         float storeTop = y;
         for (String line : receipt.storeLines) {
@@ -447,49 +451,99 @@ public class ReceiptView extends View {
         }
     }
 
+    /**
+     * WaImart lockup: a torn-edge receipt badge carrying a W, the wordmark, and
+     * the slogan underneath. Original artwork for this app - no third-party
+     * brand marks are used.
+     */
     private void drawLogo(Canvas canvas, RectF bounds) {
         Paint word = new Paint(Paint.ANTI_ALIAS_FLAG);
         word.setTypeface(Typeface.create("sans-serif-black", Typeface.NORMAL));
-        word.setTextSize(dp(42f));
-        word.setColor(0xFF0C0C0C);
+        word.setTextSize(dp(34f));
+        word.setColor(0xFF101010);
         word.setTextAlign(Paint.Align.LEFT);
-        word.setLetterSpacing(-0.02f);
-        String text = "Walmart";
-        float wordWidth = word.measureText(text);
-        float sparkRadius = dp(15f);
-        float gap = dp(7f);
-        float totalWidth = wordWidth + gap + sparkRadius * 2f;
-        float left = bounds.centerX() - totalWidth / 2f;
-        float baseline = bounds.top + dp(60f);
-        canvas.drawText(text, left, baseline, word);
-        drawSpark(canvas, left + wordWidth + gap + sparkRadius, baseline - dp(15f), sparkRadius);
+        word.setLetterSpacing(0f);
+
+        String head = "Wa";
+        String tail = "mart";
+        float size = dp(34f);
+        float headWidth = word.measureText(head);
+        float tailWidth = word.measureText(tail);
+        float capWidth = size * 0.34f;
+        float joint = size * 0.02f;
+
+        float mark = dp(34f);
+        float gap = dp(9f);
+        float lockupWidth = mark + gap + headWidth + joint + capWidth + joint + tailWidth;
+        float left = bounds.centerX() - lockupWidth / 2f;
+        float centerY = bounds.top + dp(46f);
+
+        Paint.FontMetrics fm = word.getFontMetrics();
+        float baseline = centerY - (fm.ascent + fm.descent) / 2f;
+        float wordLeft = left + mark + gap;
+        canvas.drawText(head, wordLeft, baseline, word);
+        float capLeft = wordLeft + headWidth + joint;
+        drawCapitalI(canvas, capLeft, baseline, size);
+        canvas.drawText(tail, capLeft + capWidth + joint, baseline, word);
+        drawMark(canvas, new RectF(left, centerY - mark / 2f, left + mark, centerY + mark / 2f));
 
         Paint slogan = new Paint(Paint.ANTI_ALIAS_FLAG);
-        slogan.setTypeface(Typeface.create("sans-serif", Typeface.BOLD_ITALIC));
-        slogan.setTextSize(dp(11.5f));
-        slogan.setColor(0xFF101010);
-        slogan.setTextAlign(Paint.Align.CENTER);
-        slogan.setLetterSpacing(0.01f);
-        // Slogan sits fully inside the logo block, so it is never clipped.
-        canvas.drawText("Save more. Live better.", bounds.centerX(), baseline + dp(23f), slogan);
+        slogan.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        slogan.setTextSize(dp(8.6f));
+        slogan.setColor(SLOGAN_INK);
+        slogan.setTextAlign(Paint.Align.LEFT);
+        slogan.setLetterSpacing(0.22f);
+        // Kept inside the logo block so it is never clipped.
+        canvas.drawText("KEEP EVERY LINE.", wordLeft, baseline + dp(18f), slogan);
     }
 
-    private void drawSpark(Canvas canvas, float cx, float cy, float radius) {
+    /**
+     * The capital I of the wordmark, drawn as a blue I-beam so "WaImart" reads
+     * as its own name and can never be mistaken for another brand's lettering.
+     */
+    private void drawCapitalI(Canvas canvas, float left, float baseline, float size) {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(0xFF0C0C0C);
-        p.setStrokeWidth(dp(4.6f));
-        p.setStrokeCap(Paint.Cap.ROUND);
-        float inner = radius * 0.26f;
-        float outer = radius * 0.95f;
-        for (int i = 0; i < 6; i++) {
-            double angle = Math.toRadians(-90 + i * 60);
-            canvas.drawLine(
-                    cx + (float) Math.cos(angle) * inner,
-                    cy + (float) Math.sin(angle) * inner,
-                    cx + (float) Math.cos(angle) * outer,
-                    cy + (float) Math.sin(angle) * outer,
-                    p);
+        p.setColor(BRAND_BLUE);
+        float width = size * 0.34f;
+        float capHeight = size * 0.715f;
+        float stem = size * 0.135f;
+        float bar = size * 0.11f;
+        float top = baseline - capHeight;
+        float radius = size * 0.02f;
+        canvas.drawRoundRect(new RectF(left, top, left + width, top + bar), radius, radius, p);
+        canvas.drawRoundRect(new RectF(left + (width - stem) / 2f, top, left + (width + stem) / 2f,
+                baseline), radius, radius, p);
+        canvas.drawRoundRect(new RectF(left, baseline - bar, left + width, baseline), radius, radius, p);
+    }
+
+    /** The mark: a blue receipt badge with a torn bottom edge and a white W. */
+    private void drawMark(Canvas canvas, RectF box) {
+        float w = box.width();
+        Paint badge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        badge.setColor(BRAND_BLUE);
+        canvas.drawRoundRect(box, w * 0.26f, w * 0.26f, badge);
+
+        // Torn paper edge: three notches along the bottom of the badge.
+        Paint notch = new Paint(Paint.ANTI_ALIAS_FLAG);
+        notch.setColor(0xFFFFFFFF);
+        float nr = w * 0.085f;
+        for (int i = 0; i < 3; i++) {
+            canvas.drawCircle(box.left + w * (0.22f + 0.28f * i), box.bottom, nr, notch);
         }
+
+        Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+        stroke.setColor(0xFFFFFFFF);
+        stroke.setStyle(Paint.Style.STROKE);
+        stroke.setStrokeWidth(w * 0.115f);
+        stroke.setStrokeCap(Paint.Cap.ROUND);
+        stroke.setStrokeJoin(Paint.Join.ROUND);
+        Path wPath = new Path();
+        wPath.moveTo(box.left + w * 0.21f, box.top + w * 0.30f);
+        wPath.lineTo(box.left + w * 0.325f, box.top + w * 0.66f);
+        wPath.lineTo(box.left + w * 0.50f, box.top + w * 0.42f);
+        wPath.lineTo(box.left + w * 0.675f, box.top + w * 0.66f);
+        wPath.lineTo(box.left + w * 0.79f, box.top + w * 0.30f);
+        canvas.drawPath(wPath, stroke);
     }
 
     private void drawPressed(Canvas canvas, RectF rect) {
