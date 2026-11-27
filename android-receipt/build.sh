@@ -7,6 +7,9 @@
 #                   platforms/android-34, build-tools/34.0.0
 #
 # Usage: ./build.sh          -> android-receipt/ReceiptDetail.apk
+#
+# The signing key lives in keystore/signing.keystore, next to this script and
+# outside build/, so clean rebuilds keep signing with the same certificate.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -60,15 +63,17 @@ find "$OUT/classes" -name '*.class' > "$OUT/classes.txt"
 echo "== zipalign =="
 "$BUILD_TOOLS/zipalign" -f -p 4 "$OUT/base.apk" "$OUT/aligned.apk"
 
-KEYSTORE="$OUT/signing.keystore"
+KEYSTORE_DIR=keystore
+KEYSTORE="$KEYSTORE_DIR/signing.keystore"
 if [ ! -f "$KEYSTORE" ]; then
-  echo "== generating signing key =="
+  echo "== generating signing key ($KEYSTORE) =="
+  mkdir -p "$KEYSTORE_DIR"
   keytool -genkeypair -keystore "$KEYSTORE" -alias receipt -keyalg RSA -keysize 2048 \
     -validity 10000 -storepass receiptapp -keypass receiptapp \
     -dname "CN=Receipt Detail, OU=Mobile, O=WizardOfWanks, L=San Jose, ST=CA, C=US" >/dev/null
 fi
 
-echo "== apksigner =="
+echo "== apksigner (key: $KEYSTORE) =="
 "$BUILD_TOOLS/apksigner" sign \
   --ks "$KEYSTORE" --ks-pass pass:receiptapp --key-pass pass:receiptapp \
   --ks-key-alias receipt --out "$APK" "$OUT/aligned.apk"
