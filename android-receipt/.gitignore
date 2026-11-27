@@ -1,4 +1,5 @@
 build/
+keystore/
 *.keystore
 ReceiptDetail.apk
 *.idsig
